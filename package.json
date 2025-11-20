@@ -1,0 +1,11 @@
+{
+  "name": "microservices-chat-backend-turborepo-typescript-mysql-sequelize-node",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "turbo": "latest"
+  }
+}
