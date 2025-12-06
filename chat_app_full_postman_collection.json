@@ -1,0 +1,226 @@
+{
+  "info": {
+    "name": "Chat Microservices (Gateway) - Full Collection",
+    "_postman_id": "chat-microservices-gateway-full-001",
+    "description": "Full collection for Chat microservices (all requests go through API Gateway at http://localhost:3005). Includes REST endpoints, example cURL commands, Kafka & Redis test endpoints, and Socket.IO test instructions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth (via Gateway)",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw": "{\n  \"name\": \"Akshay\",\n  \"email\": \"akshay@example.com\",\n  \"password\": \"password123\"\n}"},
+            "url": {"raw":"{{base_url}}/auth/register","host":["{{base_url}}"],"path":["auth","register"]}
+          },
+          "description": "Register a new user.\n\ncURL:\n```bash\ncurl -X POST {{base_url}}/auth/register -H 'Content-Type: application/json' -d '{\"name\":\"Akshay\",\"email\":\"akshay@example.com\",\"password\":\"password123\"}'\n```"
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw": "{\n  \"email\": \"akshay@example.com\",\n  \"password\": \"password123\"\n}"},
+            "url": {"raw":"{{base_url}}/auth/login","host":["{{base_url}}"],"path":["auth","login"]}
+          },
+          "description": "Login and receive JWT token. Save token into {{token}} environment variable.\n\ncURL:\n```bash\ncurl -X POST {{base_url}}/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"akshay@example.com\",\"password\":\"password123\"}'\n```"
+        },
+        {
+          "name": "Get me (profile)",
+          "request": {
+            "method": "GET",
+            "header": [{"key":"Authorization","value":"Bearer {{token}}"}],
+            "url": {"raw":"{{base_url}}/auth/me","host":["{{base_url}}"],"path":["auth","me"]}
+          },
+          "description": "Get current user profile. cURL:\n```bash\ncurl -H \"Authorization: Bearer $TOKEN\" {{base_url}}/auth/me\n```"
+        }
+      ]
+    },
+    {
+      "name": "Users (via Gateway)",
+      "item": [
+        {
+          "name": "Get user by id",
+          "request": {
+            "method":"GET",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"}],
+            "url":{"raw":"{{base_url}}/users/1","host":["{{base_url}}"],"path":["users","1"]}
+          },
+          "description":"Get user details by id.\n\ncURL:\n```bash\ncurl -H \"Authorization: Bearer $TOKEN\" {{base_url}}/users/1\n```"
+        },
+        {
+          "name":"Update user",
+          "request":{
+            "method":"PUT",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{ \"name\": \"Akshay Updated\" }"},
+            "url":{"raw":"{{base_url}}/users/1","host":["{{base_url}}"],"path":["users","1"]}
+          },
+          "description":"Update user profile. cURL:\n```bash\ncurl -X PUT {{base_url}}/users/1 -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -d '{\"name\":\"Akshay Updated\"}'\n```"
+        },
+        {
+          "name":"Search users",
+          "request":{
+            "method":"GET",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"}],
+            "url":{"raw":"{{base_url}}/users/search?q=akshay","host":["{{base_url}}"],"path":["users","search"],"query":[{"key":"q","value":"akshay"}]}
+          },
+          "description":"Search users by query. cURL:\n```bash\ncurl -H 'Authorization: Bearer $TOKEN' '{{base_url}}/users/search?q=akshay'\n```"
+        }
+      ]
+    },
+    {
+      "name": "Chat (via Gateway)",
+      "item": [
+        {
+          "name":"Create Room",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{ \"user1\": 1, \"user2\": 2 }"},
+            "url":{"raw":"{{base_url}}/chat/room","host":["{{base_url}}"],"path":["chat","room"]}
+          },
+          "description":"Create one-to-one room. cURL:\n```bash\ncurl -X POST {{base_url}}/chat/room -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -d '{\"user1\":1,\"user2\":2}'\n```"
+        },
+        {
+          "name":"Create Group",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{ \"name\": \"Friends\", \"members\": [1,2,3] }"},
+            "url":{"raw":"{{base_url}}/chat/group","host":["{{base_url}}"],"path":["chat","group"]}
+          },
+          "description":"Create group chat. cURL:\n```bash\ncurl -X POST {{base_url}}/chat/group -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -d '{\"name\":\"Friends\",\"members\":[1,2,3]}'\n```"
+        },
+        {
+          "name":"Send Message (REST)",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{ \"roomId\": 1, \"senderId\": 1, \"content\": \"Hello from Postman\" }"},
+            "url":{"raw":"{{base_url}}/chat/send","host":["{{base_url}}"],"path":["chat","send"]}
+          },
+          "description":"Sends message (this will persist and publish to Kafka). cURL:\n```bash\ncurl -X POST {{base_url}}/chat/send -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -d '{\"roomId\":1,\"senderId\":1,\"content\":\"Hello\"}'\n```"
+        },
+        {
+          "name":"Fetch messages",
+          "request":{
+            "method":"GET",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"}],
+            "url":{"raw":"{{base_url}}/chat/messages/1","host":["{{base_url}}"],"path":["chat","messages","1"]}
+          },
+          "description":"Get messages for roomId=1. cURL:\n```bash\ncurl -H 'Authorization: Bearer $TOKEN' {{base_url}}/chat/messages/1\n```"
+        }
+      ]
+    },
+    {
+      "name": "Messages (via Gateway)",
+      "item":[
+        {
+          "name":"Store Message (internal)",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{ \"room_id\": 1, \"sender_id\": 1, \"message\": \"Hello saved\" }"},
+            "url":{"raw":"{{base_url}}/messages/store","host":["{{base_url}}"],"path":["messages","store"]}
+          },
+          "description":"Store message directly in message-service (gateway forwards). cURL:\n```bash\ncurl -X POST {{base_url}}/messages/store -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -d '{\"room_id\":1,\"sender_id\":1,\"message\":\"Hello saved\"}'\n```"
+        },
+        {
+          "name":"Message history",
+          "request":{
+            "method":"GET",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"}],
+            "url":{"raw":"{{base_url}}/messages/history/1","host":["{{base_url}}"],"path":["messages","history","1"]}
+          },
+          "description":"Get message history for room. cURL:\n```bash\ncurl -H 'Authorization: Bearer $TOKEN' {{base_url}}/messages/history/1\n```"
+        }
+      ]
+    },
+    {
+      "name":"Notifications (via Gateway)",
+      "item":[
+        {
+          "name":"Create Notification",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{ \"user_id\": 1, \"message\": \"You have a new message\" }"},
+            "url":{"raw":"{{base_url}}/notifications","host":["{{base_url}}"],"path":["notifications"]}
+          },
+          "description":"Create a notification (gateway -> notification-service). cURL:\n```bash\ncurl -X POST {{base_url}}/notifications -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -d '{\"user_id\":1,\"message\":\"You have a new message\"}'\n```"
+        },
+        {
+          "name":"Get Notifications",
+          "request":{
+            "method":"GET",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"}],
+            "url":{"raw":"{{base_url}}/notifications/1","host":["{{base_url}}"],"path":["notifications","1"]}
+          },
+          "description":"Get notifications for userId=1. cURL:\n```bash\ncurl -H 'Authorization: Bearer $TOKEN' {{base_url}}/notifications/1\n```"
+        }
+      ]
+    },
+    {
+      "name":"Gateway Utilities",
+      "item":[
+        {
+          "name":"Health Check",
+          "request":{"method":"GET","url":{"raw":"{{base_url}}/health","host":["{{base_url}}"],"path":["health"]}},
+          "description":"Gateway health check. cURL:\n```bash\ncurl {{base_url}}/health\n```"
+        },
+        {
+          "name":"Rate limit test",
+          "request":{"method":"GET","url":{"raw":"{{base_url}}/rate-test","host":["{{base_url}}"],"path":["rate-test"]}},
+          "description":"Endpoint to test gateway rate-limiting (if implemented)."
+        }
+      ]
+    },
+    {
+      "name":"Kafka & Redis Test",
+      "item":[
+        {
+          "name":"Kafka - Produce test event (via Gateway)",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{ \"topic\": \"message_created\", \"payload\": { \"roomId\": 1, \"senderId\": 1, \"content\": \"kafka test\" } }"},
+            "url":{"raw":"{{base_url}}/internal/kafka/produce","host":["{{base_url}}"],"path":["internal","kafka","produce"]}
+          },
+          "description":"Produces a Kafka event through the gateway to test consumers. cURL:\n```bash\ncurl -X POST {{base_url}}/internal/kafka/produce -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -d '{\"topic\":\"message_created\",\"payload\":{\"roomId\":1,\"senderId\":1,\"content\":\"kafka test\"}}'\n```"
+        },
+        {
+          "name":"Redis - Publish test",
+          "request":{
+            "method":"POST",
+            "header":[{"key":"Authorization","value":"Bearer {{token}}"},{"key":"Content-Type","value":"application/json"}],
+            "body":{"mode":"raw","raw":"{ \"channel\": \"chat_messages\", \"message\": { \"roomId\": 1, \"senderId\": 1, \"content\": \"redis test\" } }"},
+            "url":{"raw":"{{base_url}}/internal/redis/publish","host":["{{base_url}}"],"path":["internal","redis","publish"]}
+          },
+          "description":"Publishes a Redis message on channel via gateway. cURL:\n```bash\ncurl -X POST {{base_url}}/internal/redis/publish -H 'Authorization: Bearer $TOKEN' -H 'Content-Type: application/json' -d '{\"channel\":\"chat_messages\",\"message\":{\"roomId\":1,\"senderId\":1,\"content\":\"redis test\"}}'\n```"
+        }
+      ]
+    },
+    {
+      "name":"Socket.IO Tests (instructions)",
+      "item":[
+        {
+          "name":"Socket.IO - Connect (instructions)",
+          "request":{
+            "method":"GET",
+            "url":{"raw":"{{base_url}} (websocket)","host":["{{base_url}}"],"path":[]}
+          },
+          "description":"Postman now supports WebSocket connections via the 'WebSocket Request' type, but for socket.io tests you can use a small JS snippet or the Node `socket.io-client`.\n\n1) Recommended: use `socket.io-client` in Node:\n\n   node -e \"const io=require('socket.io-client'); const s=io('http://localhost:3005',{auth:{token:'<JWT>'}}); s.on('connect',()=>{console.log('connected',s.id); s.emit('join_room',1); s.emit('send_message',{roomId:1,content:'hello from client'});}); s.on('message',m=>console.log('msg',m));\"\n\n2) Postman WebSocket may not perform Socket.IO handshakes; use the node snippet above."
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key":"base_url","value":"http://localhost:3005"},
+    {"key":"token","value":""}
+  ]
+}

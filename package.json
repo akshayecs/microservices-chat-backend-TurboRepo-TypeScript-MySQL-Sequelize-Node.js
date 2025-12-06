@@ -1,11 +1,25 @@
 {
   "name": "microservices-chat-backend-turborepo-typescript-mysql-sequelize-node",
+  "version": "1.0.0",
   "private": true,
+  "packageManager": "npm@9.9.4",
   "workspaces": [
-    "services/*",
-    "packages/*"
+    "packages/*",
+    "packages/**",
+    "services/*"
   ],
+  "scripts": {
+    "build": "turbo build",
+    "start": "node dist/index.js",
+    "test": "jest"
+  },
   "devDependencies": {
-    "turbo": "latest"
+    "turbo": "^2.6.1"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mysql2": "^3.15.3",
+    "sequelize": "^6.37.7"
   }
 }
