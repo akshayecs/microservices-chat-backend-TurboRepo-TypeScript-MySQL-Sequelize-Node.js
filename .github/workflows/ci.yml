@@ -1,0 +1,65 @@
+name: Monorepo CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-test:
+    name: Build & Test All Services
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Root Packages
+        run: npm install
+
+      - name: Install Service Dependencies
+        run: |
+          cd services/auth-service && npm install && cd ../../
+          cd services/user-service && npm install && cd ../../
+          cd services/chat-service && npm install && cd ../../
+          cd services/message-service && npm install && cd ../../
+          cd services/gateway-service && npm install && cd ../../
+          cd services/notification-service && npm install && cd ../../
+
+      - name: Build All Services
+        run: |
+          cd services/auth-service && npm run build && cd ../../
+          cd services/user-service && npm run build && cd ../../
+          cd services/chat-service && npm run build && cd ../../
+          cd services/message-service && npm run build && cd ../../
+          cd services/gateway-service && npm run build && cd ../../
+          cd services/notification-service && npm run build && cd ../../
+
+      - name: Run Tests
+        run: |
+          cd services/auth-service && npm test && cd ../../
+          cd services/user-service && npm test && cd ../../
+          cd services/chat-service && npm test && cd ../../
+          cd services/message-service && npm test && cd ../../
+          cd services/gateway-service && npm test && cd ../../
+          cd services/notification-service && npm test && cd ../../
