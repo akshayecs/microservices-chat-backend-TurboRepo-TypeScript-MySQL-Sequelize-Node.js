@@ -1,0 +1,133 @@
+version: "3.9"
+
+services:
+
+  # --------------------------
+  # MySQL Database
+  # --------------------------
+  mysql:
+    image: mysql:8
+    container_name: mysql8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: chatdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  # --------------------------
+  # Redis Cache + Pub/Sub
+  # --------------------------
+  redis:
+    image: redis:7
+    container_name: redis7
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  # --------------------------
+  # Auth Service
+  # --------------------------
+  auth-service:
+    build: ./services/auth-service
+    container_name: auth-service
+    restart: always
+    env_file:
+      - ./services/auth-service/.env
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - app-network
+
+  # --------------------------
+  # User Service
+  # --------------------------
+  user-service:
+    build: ./services/user-service
+    container_name: user-service
+    restart: always
+    env_file:
+      - ./services/user-service/.env
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  # --------------------------
+  # Chat Service
+  # --------------------------
+  chat-service:
+    build: ./services/chat-service
+    container_name: chat-service
+    restart: always
+    env_file:
+      - ./services/chat-service/.env
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - app-network
+
+  # --------------------------
+  # Message Service
+  # --------------------------
+  message-service:
+    build: ./services/message-service
+    container_name: message-service
+    restart: always
+    env_file:
+      - ./services/message-service/.env
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - app-network
+
+  # --------------------------
+  # Notification Service
+  # --------------------------
+  notification-service:
+    build: ./services/notification-service
+    container_name: notification-service
+    restart: always
+    env_file:
+      - ./services/notification-service/.env
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - app-network
+
+  # --------------------------
+  # API Gateway (NGINX)
+  # --------------------------
+  gateway:
+    build: ./services/gateway-service
+    container_name: gateway-service
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - user-service
+      - chat-service
+      - message-service
+    networks:
+      - app-network
+
+# --------------------------
+# Volumes & Network
+# --------------------------
+volumes:
+  mysql_data:
+
+networks:
+  app-network:
+    driver: bridge
